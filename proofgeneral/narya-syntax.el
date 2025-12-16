@@ -163,10 +163,10 @@ subdivisions."
    '(?_ "_")
    '(?' "_")
    ;; Parentheses
-   '(?( "(")
-   '(?[ "(")
-   '(?) ")")
-   '(?] ")")
+   '(?\( "(")
+   '(?\[ "(")
+   '(?\) ")")
+   '(?\] ")")
    ;; Hole delimiters are treated as parenthesis-like
    '(?¿ "(")
    '(?ʔ ")")

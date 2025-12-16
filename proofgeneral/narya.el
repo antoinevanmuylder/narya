@@ -1092,6 +1092,15 @@ With a negative prefix argument,set display of type boundaries off."
 ;; C-c C-t show goal type
 ;; C-c C-w why in scope
 
+
+(unless (fboundp 'keymap-set)
+  (defun keymap-set (keymap key definition)
+    "Define KEY in KEYMAP as DEFINITION.
+KEY is a key sequence in `kbd' format (string).
+Compatibility version for Emacs < 28."
+    (define-key keymap (kbd key) definition)))
+
+
 (keymap-set narya-mode-map "C-c C-SPC" 'narya-solve-hole)
 (keymap-set narya-mode-map "C-c C-y" 'narya-split-hole)
 (keymap-set narya-mode-map "C-c C-," 'narya-show-hole)
