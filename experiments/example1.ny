@@ -126,20 +126,25 @@ def encode (n0 n1 : Nat) : Id Nat n0 n1 → Code n0 n1 ≔ n2 ↦ match n2 [
 | suc. x ⤇ (uncode ≔ encode x.0 x.1 x.2)]
 
 
+` The following 2 proofs are an example of "proving something without understanding it"
+
 def roundtripCode
   : (n0 n1 : Nat) (c : Code n0 n1)
     → (Id (Code n0 n1) (encode n0 n1 (decode n0 n1 c)) c)
   ≔ [
 | zero. ↦ [ zero. ↦ _ ↦ refl _ | suc. n1 ↦ [ ] ]
-| suc. n0 ↦ [ zero. ↦ [ ] | suc. n1 ↦ ¿ʔ ]]
+` recall that refl Code is itself a matching function
+| suc. n0 ↦ [
+  | zero. ↦ [ ]
+  | suc. n1 ↦ c ↦ (uncode ≔ roundtripCode n0 n1 (c .uncode))]]
 
 
-def encode (n0 n1 : Nat) : Id Nat n0 n1 → ObsEqNat n0 n1 ≔ n2 ↦ match n2 [
-| zero. ⤇ myzero.
-| suc. x ⤇ mysuc. x.0 x.1] ` endpoint syntax. see "Cubes of variables"
 
-def decode (n0 n1 : Nat) : ObsEqNat n0 n1 → Id Nat n0 n1
-  ≔ oid ↦ match oid [ myzero. ↦ zero. | mysuc. m0 m1 ↦ ¿ʔ ]
+def roundtripId (n0 n1 : Nat) (n2 : Id Nat n0 n1)
+  : Id (Id Nat n0 n1) (decode n0 n1 (encode n0 n1 n2)) n2
+  ≔ match n2 [ zero. ⤇ zero. | suc. x ⤇ suc. (roundtripId x.0 x.1 x.2) ]
+
+
 
 
 
@@ -169,3 +174,38 @@ def Empty : Type ≔ data []
 
 def isEmpty : (Id (List Nat) (zero. :: nlist0) (one :: nlist1)) → Empty
   ≔ nlist2 ↦ match nlist2 [ nil. ⤇ ¿  ʔ | x :: y ⤇ ¿ ʔ ]
+
+
+{`
+------------------------------
+does narya has fully internal (univalent) parametricity?
+it seems so?
+`}
+def absThm : (A : Type) → (a : A) → Id A a a ≔ A ↦ a ↦ refl a
+
+` the param of an open term computes as (?)expected
+def absThmSpecialized ≔ absThm (List Nat) (remLast Nat nlist0)
+
+echo refl (remLast Nat nlist0)
+`echo absThm (List Nat) (remLast (List Nat) nlist0)
+
+
+
+
+
+
+
+{`
+
+----------------JUNK
+
+
+
+
+def encode (n0 n1 : Nat) : Id Nat n0 n1 → ObsEqNat n0 n1 ≔ n2 ↦ match n2 [
+| zero. ⤇ myzero.
+| suc. x ⤇ mysuc. x.0 x.1] ` endpoint syntax. see "Cubes of variables"
+
+def decode (n0 n1 : Nat) : ObsEqNat n0 n1 → Id Nat n0 n1
+  ≔ oid ↦ match oid [ myzero. ↦ zero. | mysuc. m0 m1 ↦ ¿ʔ ]
+ `}
