@@ -116,9 +116,12 @@ else
     exit 1
 fi
 
+# Narya-specific setup from here
 echo -n "Locating the ProofGeneral installation directory..."
 
-PGDIR=$(find ~/.emacs.d/elpa/ -maxdepth 1 -type d -name "proof-general-*" | sort -r | head -n1)
+# dooms stores packages in ~/.config/emacs/elpa
+PGDIR=$(find ~/.emacs.d/elpa/ ~/.config/emacs/elpa/ -maxdepth 1 -type d -name "proof-general-*" 2>/dev/null | sort -r | head -n1)
+
 
 if [ -d $PGDIR ]
 then
