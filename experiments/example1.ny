@@ -98,9 +98,41 @@ def nats (n : Nat) : Stream Nat ≔ [ .hd ↦ n | .tl ↦ nats (suc. n) ]
 
 
 {` --------------------- encode decode for Nat `}
+
+` On the one hand, this is defined by Nat recursion
+def Code : Nat → Nat → Type ≔ [
+| zero. ↦ [ zero. ↦ sig () | suc. m1 ↦ data [] ]
+| suc. n0 ↦ [ zero. ↦ data [] | suc. n1 ↦ sig ( uncode : Code n0 n1 ) ]]
+
+` On the other hand, this is the observational Id of Nat, i.e. a data type
+echo (n0 n1 : Nat) ↦ Id Nat n0 n1
+
+` More precisely it is this data type, with curly braces around ms args
 def ObsEqNat : Nat → Nat → Type ≔ data [
 | myzero. : ObsEqNat zero. zero.
 | mysuc. : (m0 m1 : Nat) → ObsEqNat (suc. m0) (suc. m1) ]
+
+def decode (n0 n1 : Nat) : Code n0 n1 → Id Nat n0 n1 ≔ match n0 [
+| zero. ↦ match n1 [ zero. ↦ _ ↦ refl zero. | suc. n1 ↦ [ ] ]
+| suc. n0 ↦ match n1 [
+  | zero. ↦ [ ]
+  | suc. n1 ↦ c ↦ suc. (decode n0 n1 (c .uncode))]]
+` [|zero. |-> ?|suc. n1 |-> ?]
+
+
+
+def encode (n0 n1 : Nat) : Id Nat n0 n1 → Code n0 n1 ≔ n2 ↦ match n2 [
+| zero. ⤇ ()
+| suc. x ⤇ (uncode ≔ encode x.0 x.1 x.2)]
+
+
+def roundtripCode
+  : (n0 n1 : Nat) (c : Code n0 n1)
+    → (Id (Code n0 n1) (encode n0 n1 (decode n0 n1 c)) c)
+  ≔ [
+| zero. ↦ [ zero. ↦ _ ↦ refl _ | suc. n1 ↦ [ ] ]
+| suc. n0 ↦ [ zero. ↦ [ ] | suc. n1 ↦ ¿ʔ ]]
+
 
 def encode (n0 n1 : Nat) : Id Nat n0 n1 → ObsEqNat n0 n1 ≔ n2 ↦ match n2 [
 | zero. ⤇ myzero.
