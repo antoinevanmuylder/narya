@@ -8,6 +8,24 @@ refine (split or introduce): C-c C-y
  `}
 
 
+{`
+
+-
+
+
+
+
+- Prod
+- encode decode for Nat
+- church bool
+
+
+
+
+`}
+
+
+
 {` ----------------simple example `}
 
 def List : Type → Type ≔ A ↦ data [
@@ -234,3 +252,8 @@ def encode (n0 n1 : Nat) : Id Nat n0 n1 → ObsEqNat n0 n1 ≔ n2 ↦ match n2 [
 def decode (n0 n1 : Nat) : ObsEqNat n0 n1 → Id Nat n0 n1
   ≔ oid ↦ match oid [ myzero. ↦ zero. | mysuc. m0 m1 ↦ ¿ʔ ]
  `}
+
+
+def Gel (A0 A1 : Type) (R : A0 → A1 → Type) : Id Type A0 A1
+  ≔ sig a0 a1 ↦ (
+  ungel : R a0 a1 )

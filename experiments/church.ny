@@ -21,6 +21,7 @@ axiom funext
 
 
 
+
 def Bool : Type ≔ data [ false. : Bool | true. : Bool ]
 
 
@@ -42,21 +43,30 @@ def roundtripBool : (b : Bool) → Eq Bool (toBool (toChurch b)) b ≔ [
 | true. ↦ erefl. true.]
 
 
+
+
 def Gel (A0 A1 : Type) (R : A0 → A1 → Type) : Lrel Type A0 A1
   ≔ sig a0 a1 ↦ (
-  unRel : R a0 a1 )
+  ungel : R a0 a1 )
+`  a0 a1 |-> sig ( ungel : R a0 a1 )
 
 def gel (A0 A1 : Type) (R : A0 → A1 → Type) (a0 : A0) (a1 : A1)
   (a2 : R a0 a1)
   : Gel A0 A1 R a0 a1
-  ≔ (unRel ≔ a2)
+  ≔ (ungel ≔ a2)
+
+` refl : {K : Type} (k : K) -> Lrel K k k
 
 def globalFreeThm (k : (A : Type) → A → A → A) (A0 A1 : Type)
   (R : A0 → A1 → Type) (af0 : A0) (af1 : A1) (af2 : R af0 af1) (at0 : A0)
   (at1 : A1) (at2 : R at0 at1)
   : R (k A0 af0 at0) (k A1 af1 at1)
   ≔ (refl k (Gel A0 A1 R) (gel A0 A1 R af0 af1 af2)
-       (gel A0 A1 R at0 at1 at2)) .unRel
+       (gel A0 A1 R at0 at1 at2)) .ungel
+
+{`
+
+ `}
 
 ` up to funext.
 def roundtripChurch (k : (A : Type) → A → A → A) (A : Type) (af at : A)
