@@ -124,6 +124,7 @@ def decode (n0 n1 : Nat) : Code n0 n1 → Id Nat n0 n1 ≔ match n0 [
 def encode (n0 n1 : Nat) : Id Nat n0 n1 → Code n0 n1 ≔ n2 ↦ match n2 [
 | zero. ⤇ ()
 | suc. x ⤇ (uncode ≔ encode x.0 x.1 x.2)]
+` x ⤇ M stands for {x.0} {x.1} x.2 |-> M
 
 
 ` The following 2 proofs are an example of "proving something without understanding it"
@@ -169,11 +170,13 @@ echo Id Nat zero. one
  `}
 
 
+{`
 def Empty : Type ≔ data []
 
 
 def isEmpty : (Id (List Nat) (zero. :: nlist0) (one :: nlist1)) → Empty
-  ≔ nlist2 ↦ match nlist2 [ nil. ⤇ ¿  ʔ | x :: y ⤇ ¿ ʔ ]
+  ≔ nlist2 ↦ match nlist2 [ nil. ⤇ ¿ [ ] ʔ | x :: y ⤇ ¿ [ ] ʔ ]
+ `}
 
 
 {`
@@ -191,8 +194,30 @@ echo refl (remLast Nat nlist0)
 
 
 
+{`
+------------------
+Id on universe
 
+`}
 
+axiom Z0 : Type
+axiom Z1 : Type
+
+` this is already normalized apparently
+echo Id Type Z0 Z1
+
+{`
+----------------------
+heterogenous eq types
+
+there are no IdP, only Id!!
+
+ `}
+
+def hetIdType (A : Type) (B : A → Type) (a0 a1 : A) (a2 : Id A a0 a1)
+  (b0 : B a0) (b1 : B a1)
+  : Type
+  ≔ Id B a2 b0 b1
 
 
 {`
