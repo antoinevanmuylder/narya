@@ -35,3 +35,8 @@ echo Bool⁽ʷ⁾ .
 
 def ReflNm : Br Type . ≔ sig ( obs : Mb Nm )
 def something : ReflNm . ≔ (obs ≔ none.)
+
+echo refl Type
+` Type⁽ʷ⁾ : Type⁽ʷ⁾
+echo refl Type .
+` Type⁽ʷ⁾ .  : Type
