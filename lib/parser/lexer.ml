@@ -134,19 +134,33 @@ module Specials = struct
   let default_onechar_ops =
     [|
       (0x28, LParen);
+      (* ( *)
       (0x29, RParen);
+      (* ) *)
       (0x5B, LBracket);
+      (* [ *)
       (0x5D, RBracket);
+      (* ] *)
       (0x7B, LBrace);
+      (* { *)
       (0x7D, RBrace);
+      (* } *)
       (0x21A6, Mapsto);
+      (* ↦ *)
       (0x2907, DblMapsto);
+      (* ⤇ *)
       (0x2192, Arrow);
+      (* → *)
       (0x21D2, DblArrow);
+      (* ⇒ *)
       (0x2254, Coloneq);
+      (* ≔ *)
       (0x2A74, DblColoneq);
+      (* ⩴ *)
       (0x2A72, Pluseq);
+      (* ⩲ *)
       (0x2026, Ellipsis);
+      (* … *)
     |]
 
   (* Any sequence consisting entirely of these characters is its own token. *)
@@ -169,7 +183,9 @@ module Specials = struct
 
   let run ?(onechar_ops = Array.of_list []) ?(ascii_symbols = Array.of_list []) ?(digit_vars = true)
       f =
-    let onechar_ops = Array.append default_onechar_ops onechar_ops in
+    (* Caller-supplied one-char ops come first so they override any default with the same character
+       (e.g. a caller reclaiming ⇒ as a plain identifier rather than the built-in DblArrow). *)
+    let onechar_ops = Array.append onechar_ops default_onechar_ops in
     let ascii_symbols = Array.append default_ascii_symbols ascii_symbols in
     R.run ~env:{ onechar_ops; ascii_symbols; digit_vars } f
 
@@ -271,14 +287,14 @@ let valid_var x = not (all_digits x)
 let atomic_ident s =
   String.length s > 0
   && s.[0] <> '_'
-  && (Specials.digit_vars () || s.[0] < '0' || s.[1] > '9')
+  && (Specials.digit_vars () || String.length s < 2 || s.[0] < '0' || s.[1] > '9')
   && not (all_digits s)
 
 (* A field name is like an identifier, but it could be all numeric for positional projections. *)
 let valid_field s =
   String.length s > 0
   && s.[0] <> '_'
-  && ((Specials.digit_vars () || s.[0] < '0' || s.[1] > '9') || all_digits s)
+  && ((Specials.digit_vars () || String.length s < 2 || s.[0] < '0' || s.[1] > '9') || all_digits s)
 
 let valid_ident = List.for_all atomic_ident
 
@@ -382,7 +398,7 @@ let canonicalize (loc : Asai.Range.t) (parts : [ `Dots of int | `Atom of string 
   match is_single_reserved_word parts with
   | Some tok -> tok
   | None -> (
-      if contains_reserved_word parts then fatal ~loc Parse_error
+      if contains_reserved_word parts then fatal ~loc (Parse_error "reserved word in identifier")
       else
         match parts with
         | [ `Dots 1 ] -> Dot
@@ -396,7 +412,7 @@ let canonicalize (loc : Asai.Range.t) (parts : [ `Dots of int | `Atom of string 
         | `Dots 1 :: `Atom fld :: `Dots 2 :: rest when atomic_ident fld -> (
             match get_higher_parts rest with
             | Some (parts, false) -> Field (fld, parts)
-            | _ -> fatal ~loc Parse_error)
+            | _ -> fatal ~loc (Parse_error "invalid higher field 1"))
         (* Simple constructor *)
         | [ `Atom con; `Dots 1 ] when atomic_ident con -> Constr (con, [])
         (* Higher constructor with multiple suffixes *)
@@ -404,7 +420,7 @@ let canonicalize (loc : Asai.Range.t) (parts : [ `Dots of int | `Atom of string 
             let _ =
               match get_higher_parts rest with
               | Some (parts, true) -> Constr (con, parts)
-              | _ -> fatal ~loc Parse_error in
+              | _ -> fatal ~loc (Parse_error "invalid higher field 2") in
             fatal ~loc (Unimplemented "higher constructors")
         (* Higher constructor with single suffix *)
         | [ `Atom con; `Dots 1; `Atom pbij; `Dots 1 ] when atomic_ident con ->
@@ -414,16 +430,27 @@ let canonicalize (loc : Asai.Range.t) (parts : [ `Dots of int | `Atom of string 
         | _ -> (
             match get_ident parts with
             | Some id -> Ident id
-            | None -> fatal ~loc Parse_error))
+            | None -> fatal ~loc (Parse_error "invalid identifier")))
 
 let other : Token.t t =
   let* rng, parts = located dot_separated_token in
   return (canonicalize (Range.convert rng) parts)
 
+(* A Key is the character # followed immediately (no intervening space) by a dot-separated identifier.  If # is not immediately followed by an identifier, this backtracks and fails, so that # is instead lexed as an ordinary ASCII symbol (Op "#"), which is used e.g. for attributes. *)
+let key : Token.t t =
+  backtrack
+    (let* _ = char '#' in
+     let* parts = atomic_other_token () in
+     match get_ident parts with
+     | Some id -> return (Key id)
+     | None -> unexpected "key identifier")
+    "key"
+
 (* Finally, a token is either a quoted string, a single-character operator, an operator of special ASCII symbols, or something else.  Unlike the built-in 'lexer' function, we include whitespace *after* the token, so that we can save comments occurring after any code. *)
 let token : Located_token.t t =
   (let* loc, tok =
-     located (hole </> quoted_string </> onechar_op </> superscript </> ascii_op </> other) in
+     located (hole </> quoted_string </> onechar_op </> superscript </> key </> ascii_op </> other)
+   in
    let* ws = whitespace in
    return (loc, (tok, ws)))
   </> located (expect_end (Eof, []))
