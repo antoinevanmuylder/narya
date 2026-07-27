@@ -185,7 +185,7 @@ and eval : type mode m b s. (mode, m, b) env -> (mode, b, s) term -> (mode, s) e
   | Nm n ->
       let m = dim_env env in
       let (Plus mn) = D.plus n in
-      Val (nm mode (D.plus_out m mn))
+      Val (nm (mode_env env) (D.plus_out m mn))
   | Var v -> Val (lookup env v)
   | Const name -> (
       let dim = dim_env env in

@@ -337,6 +337,7 @@ module Act = struct
    fun tm fa cell ->
     (* Unlike degeneracy actions, modal key actions do not change the *identity* of a canonical type, only the *arguments* it is applied to.  Therefore, the modal cell is ignored when acting on a universe, it only acts on the domains and codomains of a pi-type, and on the indices of a datatype and their types (tyfam). *)
     match tm with
+    | Nm _ -> Nm (dom_deg fa)
     | UU (mode, _) -> UU (mode, dom_deg fa)
     | Pi { x; filter; doms; cods } ->
         let (Act_pi (fb, filter, doms, cods)) = act_pi filter doms cods fa cell in
@@ -501,6 +502,9 @@ module Act = struct
       mode head -> (a, b) deg -> (mode, mu1, mu2, cod) Modalcell.t -> mode head =
    fun ne s c ->
     match ne with
+    | Nm nk ->
+        let (Of fa) = deg_plus_to s nk ~on:"name-type head" in
+        Nm (dom_deg fa)
     (* To act on a variable, we accumulate the delayed actions, extending if necessary to match. *)
     | Var { level; deg; key } -> (
         let (DegExt (_, _, deg)) = comp_deg_extending deg s in

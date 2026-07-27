@@ -374,6 +374,7 @@ and readback_head : type mode c z.
           let (To perm) = deg_of_ins ins in
           Act (tm, perm, sort))
   | UU (mode, n) -> UU (mode, n)
+  | Nm n -> Nm n
   | Pi (type dom modality k n) ({ x; filter; doms; cods } : (dom, modality, mode, k, n) pi_args) ->
       let n = BindCube.dim cods in
       let modality = Modality.filter_modality filter in

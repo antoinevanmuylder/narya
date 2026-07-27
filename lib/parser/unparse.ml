@@ -223,7 +223,7 @@ let rec get_bwd : type mode n.
 
 (* Whether we expect a given term to synthesize, after being unparsed. *)
 let rec synths : type mode n. (mode, n, kinetic) term -> bool = function
-  | Var _ | Const _ | Meta _ | MetaEnv _ | Field _ | UU _ | Inst _ | Pi _ | Key _ -> true
+  | Var _ | Const _ | Meta _ | MetaEnv _ | Field _ | UU _ | Nm _ | Inst _ | Pi _ | Key _ -> true
   | Constr _ | Lam _ | Struct _ -> false
   (* Applications, actions, and let-bindings can also check.  They only synthesize if the appropriate one of their subterms does.  *)
   | App (fn, _, _, _) -> synths fn
@@ -313,6 +313,9 @@ let rec unparse : type mode n lt ls rt rs s.
     (lt, ls, rt, rs) parse located =
  fun vars tm li ri ->
   match tm with
+  | Nm n -> unparse_act ~sort:(`Type, `Canonical) vars
+              { unparse = (fun _ _ -> unlocated (Ident ([ "Nm" ], []))) }
+              (deg_zero n) li ri
   | Var x -> unlocated (Ident (Names.lookup vars x, []))
   | Const c -> (
       match Scope.Situation.unparse (`Constant c) with

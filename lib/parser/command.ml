@@ -1219,6 +1219,7 @@ let execute ~(action_taken : unit -> unit) ~(get_file : string -> Scope.trie) (c
             | Canonical (_, Data { constrs = Snoc (Snoc (_, _), _); _ }, _, _) ->
                 fatal (Invalid_split (`Goal, "datatype with multiple constructors"))
             | Canonical (_, UU _, _, _) -> fatal (Invalid_split (`Goal, "universe"))
+            | Canonical (_, Nm _, _, _) -> fatal (Invalid_split (`Goal, "name-type"))
             | Neutral _ -> fatal (Invalid_split (`Goal, "neutral")))
         | _ ->
             let tok t : observation = Token (t, ([], None)) in

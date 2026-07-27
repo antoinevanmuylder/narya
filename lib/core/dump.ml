@@ -180,6 +180,7 @@ module F = struct
   and head : type mode. formatter -> mode head -> unit =
    fun ppf h ->
     match h with
+    | Nm n -> fprintf ppf "Nm %a" dim n
     | Var { level = l; key; _ } -> level ppf l key
     | Const { name; ins } ->
         let (To p) = deg_of_ins ins in
@@ -207,6 +208,7 @@ module F = struct
    fun ppf { mode = _; canonical; tyargs; ins; fields = _; inst_fields = _ } ->
     fprintf ppf "(%s, %a, (evdim=%s)%s, ?)"
       (match canonical with
+      | Nm _ -> "Nm ?"
       | UU _ -> "UU ?"
       | Pi _ -> "Pi ?"
       | Data _ -> "Data ?"
