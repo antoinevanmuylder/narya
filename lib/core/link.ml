@@ -8,6 +8,7 @@ open Origin
 let rec term : type mode a s. (File.t -> File.t) -> (mode, a, s) term -> (mode, a, s) term =
  fun f tm ->
   match tm with
+  | Nm n -> Nm n
   | Var i -> Var i
   | Const c -> Const (Constant.remake f c)
   | Meta (m, s) -> Meta (Meta.remake f m, s)

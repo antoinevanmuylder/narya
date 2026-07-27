@@ -60,6 +60,7 @@ module rec Value : sig
         -> ('n, 'mode, 'a) modal_value_cube
 
   type 'mode head =
+    | Nm : 'n D.t -> 'mode head
     | Var : {
         level : level;
         deg : ('m, 'n) deg;
@@ -153,6 +154,7 @@ module rec Value : sig
     | Unrealized : ('mode, potential) evaluation
 
   and (_, _, _) canonical =
+    | Nm : 'm D.t -> ('mode, 'm, D.zero) canonical
     | UU : 'mode Mode.t * 'm D.t -> ('mode, 'm, D.zero) canonical
     | Pi : ('dom, 'modality, 'mode, 'n, 'm) pi_args -> ('mode, 'm, D.zero) canonical
     | Data : ('mode, 'm, 'j, 'ij) data_args -> ('mode, 'm, D.zero) canonical
@@ -277,6 +279,7 @@ end = struct
 
   (* The head of an elimination spine is a variable, a constant, or a substituted metavariable.  *)
   type 'mode head =
+    | Nm : 'n D.t -> 'mode head
     (* A variable is determined by a De Bruijn LEVEL, and stores a neutral degeneracy applied to it, as well as a modal key 2-cell.  The vertical domain of the key is the modality annotating the variable in the context, and the vertical codomain is the composite of all the locks between that variable and the (rightmost) end of the context.  Accordingly, the horizontal codomain is the mode of the context at the time when the variable was added, and the horizontal domain is the mode of the current context. *)
     | Var : {
         level : level;
@@ -393,6 +396,7 @@ end = struct
   (* A canonical type value is either a universe, a function-type, a datatype, or a codatatype/record.  It is parametrized by its dimension as a type, which might be larger than its evaluation dimension if it has an intrinsic dimension (e.g. Gel), and by that intrinsic dimension. *)
   and (_, _, _) canonical =
     (* At present, we never produce these except as the values of their corresponding heads.  But in principle, we could allow universes and pi-types as potential terms, so that constants could be defined to "behave like" universes or pi-types without reducing to them. *)
+    | Nm : 'm D.t -> ('mode, 'm, D.zero) canonical
     | UU : 'mode Mode.t * 'm D.t -> ('mode, 'm, D.zero) canonical
     | Pi : ('dom, 'modality, 'mode, 'n, 'm) pi_args -> ('mode, 'm, D.zero) canonical
     (* We define a named record type to encapsulate the arguments of Data and Codata, rather than using an inline one, so that we can bind their existential variables (https://discuss.ocaml.org/t/annotating-by-an-existential-type/14721).  See the definitions of these records below. *)
@@ -919,6 +923,8 @@ let eval_structfield_abwd : type mode m n mn a status et.
       Value.StructfieldAbwd.Entry (f, eval_structfield env m m_n mn sf))
     [ fields ]
 
+
+
 (* The universe of any dimension belongs to an instantiation of itself.  Note that the result is not itself a type (i.e. in the 0-dimensional universe) unless n=0.  This is the universe itself as a term. *)
 (* Since the universe of a given mode and dimension depends on nothing else (Fibrancy.universe is fixed at startup), we memoize it. *)
 type cached_universe =
@@ -998,6 +1004,23 @@ and universe_ty : type mode n. mode Mode.t -> n D.t -> (mode, kinetic) value =
           value;
           ty = lazy (universe mode D.zero);
         }
+
+(* needed to eval Nm type *)
+let nm : type mode n. mode Mode.t -> n D.t -> (mode, kinetic) value =
+ fun mode n ->
+  let value =
+    ready
+      (Val
+         (Canonical
+            {
+              mode;
+              canonical = Nm n;
+              tyargs = TubeOf.empty n;
+              ins = ins_zero n;
+              fields = Bwd.Emp;
+              inst_fields = Some Bwd.Emp;
+            })) in
+  Neu { head = Nm n; args = Emp; value; ty = lazy (universe mode n) }
 
 type ('hmode, 'mode) any_apps = Any : ('hmode, 'mode, 'any) apps -> ('hmode, 'mode) any_apps
 

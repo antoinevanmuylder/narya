@@ -109,6 +109,7 @@ module rec Term : sig
         -> ('n, 'mode, 'a, 's) any_modal_term_cube
 
   type (_, _, _) term =
+    | Nm : 'n D.t -> ('mode, 'a, kinetic) term (* extra type for nominal type theory *)
     | Var : ('mode, 'a) index -> ('mode, 'a, kinetic) term
     | Const : Constant.t -> ('mode, 'a, kinetic) term
     | Meta : ('mode, 'x, 'b, 'l) Meta.t * 's energy -> ('mode, 'b, 's) term
@@ -412,6 +413,7 @@ end = struct
 
   type (_, _, _) term =
     (* Most term-formers only appear in kinetic (ordinary) terms. *)
+    | Nm : 'n D.t -> ('mode, 'a, kinetic) term (* extra type for nominal type theory *)
     | Var : ('mode, 'a) index -> ('mode, 'a, kinetic) term
     | Const : Constant.t -> ('mode, 'a, kinetic) term
     | Meta : ('mode, 'x, 'b, 'l) Meta.t * 's energy -> ('mode, 'b, 's) term

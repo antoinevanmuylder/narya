@@ -244,6 +244,7 @@ module F = struct
   and term : type mode b s. formatter -> (mode, b, s) term -> unit =
    fun ppf tm ->
     match tm with
+    | Nm n -> fprintf ppf "Nm %a" dim n
     | Var (Index (x, fa, _, _)) ->
         fprintf ppf "IVar %d.%s" (Tctx.int_of_insert x) (string_of_sface fa)
     | Const c -> fprintf ppf "Const %s" (print_to_string (PConstant c))
