@@ -93,6 +93,7 @@ module rec Make : functor (I : Indices) -> sig
     | AscLam :
         I.name located * string located list located * 'a check located * 'a I.suc synth located
         -> 'a synth
+    | Nm : 'a synth
     | UU : 'mode Mode.t -> 'a synth
     | Let :
         I.name * string located list located * 'a synth located * 'a I.suc check located
@@ -278,6 +279,7 @@ functor
       | AscLam :
           I.name located * string located list located * 'a check located * 'a I.suc synth located
           -> 'a synth
+      | Nm : 'a synth
       (* A universe knows its mode. *)
       | UU : 'mode Mode.t -> 'a synth
       (* A Let can either synthesize or (sometimes) check.  It synthesizes only if its body also synthesizes, but we wait until typechecking type to look for that, so that if it occurs in a checking context the body can also be checking.  Thus, we make it a "synthesizing term".  The term being bound must also synthesize; the shorthand notation "let x : A := M" is expanded during parsing to "let x := M : A". *)
@@ -520,6 +522,7 @@ module Resolve (R : Resolver) = struct
       | AscLam (x, modality, dom, body) ->
           AscLam
             (locate_map (R.rename ctx) x, modality, check ctx dom, synth (R.snoc ctx x.value) body)
+      | Nm -> Nm
       | UU mode -> UU mode
       | Let (x, modality, tm, body) ->
           Let (R.rename ctx x, modality, synth ctx tm, (check (R.snoc ctx x)) body)

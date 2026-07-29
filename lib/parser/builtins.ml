@@ -51,6 +51,10 @@ let () =
       is_case = (fun _ -> false);
     }
 
+(* name type *)
+
+type (_, _, _) identity += Nm : (closed, No.plus_omega, closed) identity
+
 (* ********************
    The universe
  ******************** *)
@@ -2948,7 +2952,27 @@ let install () =
           };
         (name, Mode.Wrap mode, universe))
       (Mode.all ());
+  let nm_notation = (Nm, Outfix) in
+  make nm_notation
+    {
+      name = "Nm";
+      tree = Closed_entry (eop (Ident [ "Nm" ]) (Done_closed nm_notation));
+      processor =
+        (fun _ obs loc ->
+          match obs with
+          | [ Token (Ident [ "Nm" ], _) ] -> { value = Synth (Nm); loc }
+          | _ -> invalid ?loc "Nm");
+      pattern = (fun _ loc -> fatal ?loc (Invalid_notation_pattern "Nm"));
+      print_term =
+        Some
+          (function
+          | [ Token (Ident [ "Nm" ], (wstype, _)) ] -> (string "Nm", wstype)
+          | _ -> invalid "Nm");
+      print_case = None;
+      is_case = (fun _ -> false);
+    };
   Scope.(
+    Situation.add nm_notation;
     Situation.add Postprocess.parens;
     Situation.add Postprocess.braces;
     Situation.add letin;

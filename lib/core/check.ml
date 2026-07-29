@@ -3237,6 +3237,7 @@ and synth : type mode a b s.
                 let (Wrap ctx_lock) = Ctx.total_locks ctx in
                 fatal ?loc:keyname.loc (Key_mismatch (cell, ctx_lock)))
         | Error e -> modalcell_fatal "checking key" (e :> modality_error))
+    | Nm, _ -> (realize status (Term.Nm D.zero), universe mode D.zero)
     | UU umode, _ -> (
         match Modal.Mode.compare umode mode with
         | Eq -> (realize status (Term.UU (mode, D.zero)), universe mode D.zero)
@@ -4409,6 +4410,7 @@ let rec synth_mode : type a. a check located -> Modal.Mode.wrapped option =
                   | Ok (Wrap modality) -> Some (Wrap (Modality.tgt modality))
                   | Error _ -> None)
               | None -> None))
+      | Synth (Nm) -> None
       | Synth (UU mode) -> Some (Wrap mode)
       | Synth (Let (_, _, _, body)) -> synth_mode body
       | Synth (Letrec (_, _, body)) -> synth_mode body

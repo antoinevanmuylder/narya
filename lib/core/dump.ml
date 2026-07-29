@@ -399,6 +399,7 @@ module F = struct
     | Act (_, _, _) -> fprintf ppf "Act(?)"
     | Match { tm; window = _; sort = _; branches = br; refutables = _; highers = _ } ->
         fprintf ppf "Match (%a, (%a))" synth tm.value branches br
+    | Nm -> fprintf ppf "Nm"
     | UU mode -> fprintf ppf "%s" (Mode.name mode)
     | Fail _ -> fprintf ppf "Error"
     | ImplicitSApp (fn, _, arg) -> fprintf ppf "ImplicitSApp(%a, %a)" synth fn.value synth arg.value
